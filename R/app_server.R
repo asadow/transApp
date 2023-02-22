@@ -5,7 +5,19 @@
 #' @import shiny
 #' @noRd
 app_server <- function(input, output, session) {
-  data <- dataServer("data", emptrans)
+  .data <- mod_data_server("data_1", .data = pr::load_sick())
+
+  mod_summary_years_server("data_1", .data = pr::load_sick())
+
+  output$raw_table <- reactable::renderReactable(pr::style_reactable(.data()))
+
+
+  # output$table <- renderTable(.data())
+  # mod_summary_years_server("summary_years_1", .data = pr::load_sick())
+  # .data <- mod_summary_years_server("summary_years_1", .data = pr::load_sick())
+  # output$table <- DT::renderDT(.data)
+  # data <- dataServer("data", emptrans)
+
 
   # x <- inputServer("data")
 

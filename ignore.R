@@ -8,21 +8,21 @@ library(reactable)
 library(crosstalk)
 library(htmltools)
 library(DT)
-
-sick_codes <- pr::transaction |> filter(code_g == "SICK") |> pull(code_s)
-alt_sick_codes <- sick_codes |> str_subset("SICK", negate = TRUE)
-sick <- read_rds("emptrans.rds") |>
-  mutate(
-    code = fct_collapse(code, SICK = !!alt_sick_codes)
-  ) |>
-  filter(code %in% c("CV", "SICK", "CSICK")) |>
-  select(bargaining_unit, department, employee, employee_no,
-         code, crew, date, hours) |>
-  left_join(employee, by = "employee_no") |>
-  mutate(
-    year = factor(year(date)),
-    days = hours/hours_day
-  )
+#
+# sick_codes <- pr::transaction |> filter(code_g == "SICK") |> pull(code_s)
+# alt_sick_codes <- sick_codes |> str_subset("SICK", negate = TRUE)
+# sick <- read_rds("emptrans.rds") |>
+#   mutate(
+#     code = fct_collapse(code, SICK = !!alt_sick_codes)
+#   ) |>
+#   filter(code %in% c("CV", "SICK", "CSICK")) |>
+#   select(bargaining_unit, department, employee, employee_no,
+#          code, crew, date, hours) |>
+#   left_join(prdata::employee, by = "employee_no") |>
+#   mutate(
+#     year = factor(year(date)),
+#     days = hours/hours_day
+#   )
 
 # sick_n <- sick |>
 #   add_count(

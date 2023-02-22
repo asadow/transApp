@@ -9,9 +9,28 @@ app_ui <- function(request) {
     # Leave this function for adding external resources
     golem_add_external_resources(),
     # Your application UI logic
-    tagList(
+    fluidPage(
       titlePanel("transApp"),
-      dataInput("data", trans),
+      helpText("All boxes under `Choose` can be clicked on and typed in.
+               Hit Backspace once to remove entries."),
+      sidebarLayout(
+        sidebarPanel(
+          mod_data_ui("data_1", .data = pr::load_sick())
+          ),
+        mainPanel(
+          tabsetPanel(
+            tabPanel(
+              "Yearly Summary",
+              reactable::reactableOutput(NS("data_1", "table"))
+              ),
+            tabPanel("Raw Data", reactable::reactableOutput("raw_table"))
+          )
+        )
+      )
+      # mod_summary_years_ui("summary_years_1", .data = pr::load_sick()),
+      # summaryOutputTable("summary_years_1")
+      # DT::DTOutput("table")
+
       # mainPanel(
       #   calendarOutputPlot("calendar"),
       #   occasionOutputTable("table")
