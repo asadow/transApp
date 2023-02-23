@@ -17,7 +17,8 @@ Imports:
     prdata,
     shiny (>= 1.7.4),
     shinyWidgets,
-    stringr
+    stringr,
+    zeallot
 Suggests: 
     spelling,
     testthat (>= 3.0.0)

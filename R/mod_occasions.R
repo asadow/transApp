@@ -10,14 +10,15 @@
 mod_occasions_ui <- function(id){
   ns <- NS(id)
   tagList(
-
+    mod_download_ui(id),
+    reactable::reactableOutput(NS(id, "table"))
   )
 }
 
 #' occasions Server Functions
 #'
 #' @noRd
-mod_occasions_server <- function(id, .data){
+mod_occasions_server <- function(id, label, .data, .emp, .dates, .codes){
   stopifnot(is.reactive(.data))
 
   moduleServer( id, function(input, output, session){
@@ -40,7 +41,12 @@ mod_occasions_server <- function(id, .data){
 
       })
 
-    return(.occasions)
+    output$downloadData <- mod_download_server(id = "placeholder",
+                                               label = "occasions",
+                                               .data = .occasions,
+                                               .emp = .emp,
+                                               .dates = .dates,
+                                               .codes = .codes)
   })
 }
 

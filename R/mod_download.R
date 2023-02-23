@@ -17,10 +17,10 @@ mod_download_ui <- function(id){
 #' download Server Functions
 #'
 #' @noRd
-mod_download_server <- function(id, label, .data, .emp, .date_range, .codes){
+mod_download_server <- function(id, label, .data, .emp, .dates, .codes){
   stopifnot(is.reactive(.data))
   stopifnot(is.reactive(.emp))
-  stopifnot(is.reactive(.date_range))
+  stopifnot(is.reactive(.dates))
   stopifnot(is.reactive(.codes))
 
   moduleServer( id, function(input, output, session){
@@ -30,7 +30,7 @@ mod_download_server <- function(id, label, .data, .emp, .date_range, .codes){
         label, ", ",
         .emp(), ", ",
         glue::glue_collapse(.codes(), "-"), ", ",
-        .date_range()[1], " to ", .date_range()[2],
+        .dates()[1], " to ", .dates()[2],
         ".csv"
       )
     })

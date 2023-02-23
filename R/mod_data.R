@@ -218,7 +218,7 @@ mod_data_server <- function(id, df){
     list(
       .data = .data_employee,
       .employee = reactive(input$employee),
-      .date_range = reactive(input$date),
+      .dates = reactive(input$date),
       .codes = reactive(input$code)
     )
   })

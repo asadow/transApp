@@ -5,44 +5,24 @@
 #' @import shiny
 #' @noRd
 app_ui <- function(request) {
+
   tagList(
-    # Leave this function for adding external resources
     golem_add_external_resources(),
-    # Your application UI logic
     fluidPage(
       titlePanel("Application for Employee Transactions"),
       helpText("All boxes under `Choose` can be clicked on and typed in.
                Hit Backspace once to remove entries."),
       sidebarLayout(
         sidebarPanel(
-          mod_data_ui("selected_data", df = pr::load_sick())
+          mod_data_ui("selectdata", df = pr::load_sick())
           ),
         mainPanel(
           tabsetPanel(
-            # tabPanel(
-            #   "Yearly Summary",
-            #   reactable::reactableOutput(NS("data1", "table"))
-            #   ),
-            tabPanel(
-              "Occasions",
-              mod_download_ui("data2"),
-              reactable::reactableOutput(NS("data1", "table"))
-            ),
-            tabPanel("Raw Data",
-                     mod_download_ui("data1"),
-                     reactable::reactableOutput("table"))
+            tabPanel("Occasions", mod_occasions_ui("occdata")),
+            tabPanel("Raw Data", mod_raw_ui("rawdata"))
           )
         )
       )
-      # mod_summary_years_ui("summary_years_1", .data = pr::load_sick()),
-      # summaryOutputTable("summary_years_1")
-      # DT::DTOutput("table")
-
-      # mainPanel(
-      #   calendarOutputPlot("calendar"),
-      #   occasionOutputTable("table")
-      # ),
-      # actionButton("ss", "Take a screenshot")
     )
   )
 }

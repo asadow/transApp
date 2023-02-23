@@ -1,7 +1,7 @@
 testServer(
   mod_data_server,
   # Add here your module params
-  args = list()
+  args = list(df = pr::load_sick())
   , {
     ns <- session$ns
     expect_true(
@@ -27,7 +27,7 @@ testServer(
 })
 
 test_that("module ui works", {
-  ui <- mod_data_ui(id = "test", .data = pr::load_sick())
+  ui <- mod_data_ui(id = "test", df = pr::load_sick())
   golem::expect_shinytaglist(ui)
   # Check that formals have not been removed
   fmls <- formals(mod_data_ui)
