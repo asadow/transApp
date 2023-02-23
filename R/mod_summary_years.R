@@ -30,12 +30,13 @@ mod_summary_years_ui <- function(id, .data){
 #' summary_years Server Functions
 #'
 #' @noRd
-mod_summary_years_server <- function(id, .data){
+mod_summary_years_server <- function(id, data){
+
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
     .summary <- reactive({
-      .data |>
+      data |>
         dplyr::filter(
           date >= input$date[1] & date <= input$date[2]
           & code %in% input$code

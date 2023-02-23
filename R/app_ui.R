@@ -10,20 +10,27 @@ app_ui <- function(request) {
     golem_add_external_resources(),
     # Your application UI logic
     fluidPage(
-      titlePanel("transApp"),
+      titlePanel("Application for Employee Transactions"),
       helpText("All boxes under `Choose` can be clicked on and typed in.
                Hit Backspace once to remove entries."),
       sidebarLayout(
         sidebarPanel(
-          mod_data_ui("data_1", .data = pr::load_sick())
+          mod_data_ui("selected_data", df = pr::load_sick())
           ),
         mainPanel(
           tabsetPanel(
+            # tabPanel(
+            #   "Yearly Summary",
+            #   reactable::reactableOutput(NS("data1", "table"))
+            #   ),
             tabPanel(
-              "Yearly Summary",
-              reactable::reactableOutput(NS("data_1", "table"))
-              ),
-            tabPanel("Raw Data", reactable::reactableOutput("raw_table"))
+              "Occasions",
+              mod_download_ui("data2"),
+              reactable::reactableOutput(NS("data1", "table"))
+            ),
+            tabPanel("Raw Data",
+                     mod_download_ui("data1"),
+                     reactable::reactableOutput("table"))
           )
         )
       )

@@ -7,17 +7,17 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-mod_data_ui <- function(id, .data){
+mod_data_ui <- function(id, df){
   ns <- NS(id)
 
-  ubarg <- sort_unique(.data$barg)
-  udept <- sort_unique(.data$dept_desc) |> na.omit()
-  ucrew <- sort_unique(.data$crew_desc) |> na.omit()
-  ucode <- sort_unique(.data$code) |> na.omit()
+  ubarg <- sort_unique(df$barg)
+  udept <- sort_unique(df$dept_desc) |> na.omit()
+  ucrew <- sort_unique(df$crew_desc) |> na.omit()
+  ucode <- sort_unique(df$code) |> na.omit()
 
   # ## Convert factor before max() or min()
-  # max_year <- .data$year |> as.character() |> as.numeric() |> max()
-  # min_year <- .data$year |> as.character() |> as.numeric() |> min()
+  # max_year <- df$year |> as.character() |> as.numeric() |> max()
+  # min_year <- df$year |> as.character() |> as.numeric() |> min()
 
   tagList(
       selectInput(
@@ -64,10 +64,10 @@ mod_data_ui <- function(id, .data){
         inputId = ns("date"),
         label = "Choose dates",
         startview = "decade",
-        start = min(.data$date),
-        min = min(.data$date),
-        end = max(.data$date),
-        max = max(.data$date)
+        start = min(df$date),
+        min = min(df$date),
+        end = max(df$date),
+        max = max(df$date)
       ),
 
       sliderInput(
@@ -126,7 +126,9 @@ mod_data_ui <- function(id, .data){
 #' data Server Functions
 #'
 #' @noRd
-mod_data_server <- function(id, .data){
+mod_data_server <- function(id, df){
+  stopifnot(!is.reactive(df))
+
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
@@ -134,9 +136,9 @@ mod_data_server <- function(id, .data){
 
     .barg <- reactive({
       chosen <- if(input$barg == "All"){
-        sort_unique(.data$barg)
+        sort_unique(df$barg)
         } else {input$barg}
-      dplyr::filter(.data, barg %in% chosen)
+      dplyr::filter(df, barg %in% chosen)
       })
 
     observeEvent(.barg(), {
@@ -148,9 +150,8 @@ mod_data_server <- function(id, .data){
     })
 
     .dept <- reactive({
-      req(input$dept_desc)
       chosen <- if(input$dept_desc == "All"){
-        sort_unique(.data$dept_desc)
+        sort_unique(df$dept_desc)
       } else {input$dept_desc}
       dplyr::filter(.barg(), dept_desc %in% chosen)
     })
@@ -163,9 +164,8 @@ mod_data_server <- function(id, .data){
     })
 
     .crew <- reactive({
-      req(input$crew_desc)
       chosen <- if(input$crew_desc == "All"){
-        sort_unique(.data$crew_desc)
+        sort_unique(df$crew_desc)
       } else {input$crew_desc}
       dplyr::filter(.dept(), crew_desc %in% chosen)
     })
@@ -178,7 +178,6 @@ mod_data_server <- function(id, .data){
     })
 
     .code <- reactive({
-      req(input$code)
       choices <- input$code
       dplyr::filter(.dept(), code %in% choices)
     })
@@ -194,7 +193,6 @@ mod_data_server <- function(id, .data){
     })
 
     .days <- reactive({
-      # req(input$days_range)
       .code() |>
         dplyr::filter(date >= input$date[1] & date <= input$date[2]) |>
         ## See note above for reasoning behind distinct
@@ -210,18 +208,19 @@ mod_data_server <- function(id, .data){
     })
 
     .data_employee <- reactive({
-      # is_code_selected <- input$code != ""
-      # validate(
-      #   need(is_code_selected, "There are no codes selected.")
-      # )
-
       .code() |>
         dplyr::filter(
           employee %in% input$employee
           & date >= input$date[1] & date <= input$date[2]
-          # & year %in% input$year[1]:input$year[2]
         )
     })
+
+    list(
+      .data = .data_employee,
+      .employee = reactive(input$employee),
+      .date_range = reactive(input$date),
+      .codes = reactive(input$code)
+    )
   })
 }
 
@@ -230,7 +229,7 @@ mod_data_server <- function(id, .data){
 #' @noRd
 mod_data_output <- function(id) {
   ns <- NS(id)
-  reactable::reactableOutput(ns("raw_table"))
+  reactable::reactableOutput(ns("table"))
 }
 
 ## To be copied in the UI
