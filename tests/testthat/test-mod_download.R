@@ -6,7 +6,7 @@ test_that("output updates when reactive input changes", {
   testServer(
     mod_download_server,
     args = list(
-      label = "test", .data = x, .emp = y, .dates = z, .codes = w
+      label = "test", .df = x, .emp = y, .dates = z, .codes = w
     )
     , {
       x(data.frame(x=c(1:3)))
@@ -36,7 +36,7 @@ test_that("output updates when reactive input changes", {
       # - to the testServer function via args = list()
       # expect_true(r$x == 1)
       # - Testing output
-      expect_s3_class(.data(), "data.frame")
+      expect_s3_class(.df(), "data.frame")
       expect_type(.emp(), "character")
       expect_type(.dates(), "character")
       expect_type(.codes(), "character")

@@ -18,17 +18,17 @@ mod_raw_ui <- function(id){
 #' raw Server Functions
 #'
 #' @noRd
-mod_raw_server <- function(id, label, .data, .emp, .dates, .codes){
+mod_raw_server <- function(id, label, .df, .emp, .dates, .codes){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
     output$table <- reactable::renderReactable(
-      pr::style_reactable(.data())
+      pr::style_reactable(.df())
     )
 
     output$downloadData <- mod_download_server(id = "placeholder",
                                                label = "raw",
-                                               .data = .data,
+                                               .df = .df,
                                                .emp = .emp,
                                                .dates = .dates,
                                                .codes = .codes)

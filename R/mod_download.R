@@ -17,27 +17,19 @@ mod_download_ui <- function(id){
 #' download Server Functions
 #'
 #' @noRd
-mod_download_server <- function(id, label, .data, .emp, .dates, .codes){
-  stopifnot(is.reactive(.data))
-  stopifnot(is.reactive(.emp))
-  stopifnot(is.reactive(.dates))
-  stopifnot(is.reactive(.codes))
+mod_download_server <- function(id, .df, .filename){
+  stopifnot(is.reactive(.df))
+  stopifnot(is.reactive(.filename))
 
   moduleServer( id, function(input, output, session){
     ns <- session$ns
-    .filename = reactive( {
-      paste0(
-        label, ", ",
-        .emp(), ", ",
-        glue::glue_collapse(.codes(), "-"), ", ",
-        .dates()[1], " to ", .dates()[2],
-        ".csv"
-      )
-    })
     output$downloadData <- downloadHandler(
-      filename = .filename(),
+      filename = function() paste0(.filename(), ".xlsx"),
       content = function(file) {
-        write.csv(.data(), file, row.names = FALSE)
+        openxlsx::write.xlsx(
+          .df(),
+          file
+        )
       }
     )
   })

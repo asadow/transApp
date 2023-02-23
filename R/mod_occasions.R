@@ -18,40 +18,49 @@ mod_occasions_ui <- function(id){
 #' occasions Server Functions
 #'
 #' @noRd
-mod_occasions_server <- function(id, label, .data, .emp, .dates, .codes){
-  stopifnot(is.reactive(.data))
+mod_occasions_server <- function(id, .df, .emp, .dates, .codes){
+  stopifnot(is.reactive(.df))
+  stopifnot(is.reactive(.emp))
+  stopifnot(is.reactive(.dates))
+  stopifnot(is.reactive(.codes))
 
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-    .occasions <- reactive({
-      .data() |>
-        pr::add_occasion() |>
-        dplyr::select(code, year, year_half, occasion)
+    .occasions <- reactive(pr::add_occasion(.df()))
+
+    .to_download <- reactive({
+      .occasions() |>
+        dplyr::select(barg, dept, crew, code, surname,
+                      given_names, employee_no,
+                      year_half, occasion, hours, date)
+    })
+
+    .table <- reactive({
+      .occasions() |>
+        dplyr::mutate(
+          ## Place elsewhere??
+          # days = round(hours/hours_day, 1),
+          year_half = glue::glue("{year} - {year_half}")
+        ) |>
+        dplyr::select(code, year_half, occasion, hours, date)
+
     })
 
     output$table <- reactable::renderReactable({
 
-      records <- nrow(.occasions()) > 0
+      records <- nrow(.table()) > 0
       validate(
         need(records, "There are no records for the selected choices.")
       )
 
-      .occasions() |> pr::style_reactable()
+      pr::style_reactable(.table())
 
       })
 
-    output$downloadData <- mod_download_server(id = "placeholder",
-                                               label = "occasions",
-                                               .data = .occasions,
-                                               .emp = .emp,
-                                               .dates = .dates,
-                                               .codes = .codes)
+    .filename <- mod_file_server(NULL, label = id, .emp, .dates, .codes)
+
+    output$downloadData <- mod_download_server(NULL, .to_download, .filename)
+
   })
 }
-
-## To be copied in the UI
-# mod_occasions_ui("occasions_1")
-
-## To be copied in the server
-# mod_occasions_server("occasions_1")

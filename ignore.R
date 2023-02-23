@@ -87,10 +87,10 @@ summ <- summ |>
 # i_chr <- which(map_lgl(summ, is.factor)) - 1
 # names(i_chr) <- NULL
 
-dt_formatted <- function(.data){
+dt_formatted <- function(.df){
 
   datatable(
-    .data,
+    .df,
     rownames = FALSE,
     extensions = c('Select', 'RowGroup', 'Buttons', 'SearchPanes'),
     options = list(

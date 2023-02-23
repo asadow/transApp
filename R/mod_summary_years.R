@@ -7,11 +7,11 @@
 #' @noRd
 #'
 #' @importFrom shiny NS tagList
-mod_summary_years_ui <- function(id, .data){
+mod_summary_years_ui <- function(id, .df){
 
   ## Convert factor before max() or min()
-  max_year <- .data$year |> as.character() |> as.numeric() |> max()
-  min_year <- .data$year |> as.character() |> as.numeric() |> min()
+  max_year <- .df$year |> as.character() |> as.numeric() |> max()
+  min_year <- .df$year |> as.character() |> as.numeric() |> min()
 
   ns <- NS(id)
   tagList(

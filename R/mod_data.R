@@ -8,6 +8,9 @@
 #'
 #' @importFrom shiny NS tagList
 mod_data_ui <- function(id, df){
+  stopifnot(!is.reactive(df))
+  stopifnot(is.data.frame(df))
+
   ns <- NS(id)
 
   ubarg <- sort_unique(df$barg)
@@ -19,73 +22,88 @@ mod_data_ui <- function(id, df){
   # max_year <- df$year |> as.character() |> as.numeric() |> max()
   # min_year <- df$year |> as.character() |> as.numeric() |> min()
 
-  tagList(
-      selectInput(
-        ns("barg"),
-        label = "Choose bargaining unit(s)",
-        choices =  c("All", as.character(ubarg)),
-        # multiple = TRUE,
-        selected = "All"
-      ),
+  fluidRow(
+    column(3,
+           wellPanel(
+              selectInput(
+                ns("barg"),
+                label = "Choose bargaining unit(s)",
+                choices =  c("All", as.character(ubarg)),
+                # multiple = TRUE,
+                selected = "All"
+              ),
 
-      selectInput(
-        ns("dept_desc"),
-        label = "Choose department(s)",
-        choices =  c("All", as.character(udept)),
-        # multiple = TRUE,
-        selected = "All"
-      ),
+              selectInput(
+                ns("dept_desc"),
+                label = "Choose department(s)",
+                choices =  c("All", as.character(udept)),
+                # multiple = TRUE,
+                selected = "All"
+              ),
 
-      selectInput(
-        ns("crew_desc"),
-        label = "Choose crew(s)",
-        choices =  c("All", as.character(ucrew)),
-        # multiple = TRUE,
-        selected = "All"
-      ),
+              selectInput(
+                ns("crew_desc"),
+                label = "Choose crew(s)",
+                choices =  c("All", as.character(ucrew)),
+                # multiple = TRUE,
+                selected = "All"
+              ),
+           )
+    ),
+    column(3,
+           wellPanel(
 
-      selectInput(
-        inputId = ns("code"),
-        label = "Choose code(s)",
-        choices = ucode,
-        multiple = TRUE,
-        selected = "SICK"
-      ),
-      # shinyWidgets::pickerInput(
-      #   inputId = ns("code"),
-      #   label = "Choose code(s)",
-      #   choices = ucode,
-      #   options = list(`actions-box` = TRUE),
-      #   multiple = TRUE,
-      #   selected = "SICK"
-      # ),
+            selectInput(
+              inputId = ns("code"),
+              label = "Choose code(s)",
+              choices = ucode,
+              multiple = TRUE,
+              selected = "SICK"
+            ),
+            # shinyWidgets::pickerInput(
+            #   inputId = ns("code"),
+            #   label = "Choose code(s)",
+            #   choices = ucode,
+            #   options = list(`actions-box` = TRUE),
+            #   multiple = TRUE,
+            #   selected = "SICK"
+            # ),
 
-      dateRangeInput(
-        inputId = ns("date"),
-        label = "Choose dates",
-        startview = "decade",
-        start = min(df$date),
-        min = min(df$date),
-        end = max(df$date),
-        max = max(df$date)
-      ),
+            dateRangeInput(
+              inputId = ns("date"),
+              label = "Choose dates",
+              startview = "decade",
+              start = min(df$date),
+              min = min(df$date),
+              end = max(df$date),
+              max = max(df$date)
+            ),
 
-      sliderInput(
-        ns("days_range"),
-        min = 0,
-        max = 100,
-        label = "Choose number of days with codes and within dates above",
-        value = c(16, 100),
-        step = 1,
-        animate = TRUE
-      ),
+            sliderInput(
+              ns("days_range"),
+              min = 0,
+              max = 100,
+              label = "Choose number of days with codes and within dates above",
+              value = c(16, 100),
+              step = 1
+              ),
+       ),
 
-      selectInput(
-        ns("employee"),
-        label = "Choose employee",
-        # multiple = TRUE,
-        choices = NULL
-      )
+    ),
+    column(3,
+           wellPanel(
+             actionButton(ns("find_emps"), "Find employees!"),
+
+             selectInput(
+               ns("employee"),
+               label = "Choose employee",
+               # multiple = TRUE,
+               choices = NULL
+             )
+           )
+         )
+
+  )
 
       # numericInput(
       #   ns("max_days"),
@@ -120,7 +138,6 @@ mod_data_ui <- function(id, df){
       #   maxDate = max_year
       # ),
 
-    )
 }
 
 #' data Server Functions
@@ -128,6 +145,7 @@ mod_data_ui <- function(id, df){
 #' @noRd
 mod_data_server <- function(id, df){
   stopifnot(!is.reactive(df))
+  stopifnot(is.data.frame(df))
 
   moduleServer( id, function(input, output, session){
     ns <- session$ns
@@ -192,13 +210,17 @@ mod_data_server <- function(id, df){
                            max = max_date)
     })
 
-    .days <- reactive({
+    # .days <- reactive({
+    #   .code() |>
+    #     dplyr::filter(date >= input$date[1] & date <= input$date[2]) |>
+    #     sum_days_per_emp() |>
+    #     dplyr::filter(days %in% c(input$days_range[1]:input$days_range[2]))
+    # })
+
+    .days <- eventReactive(input$find_emps, {
       .code() |>
         dplyr::filter(date >= input$date[1] & date <= input$date[2]) |>
-        ## See note above for reasoning behind distinct
-        dplyr::distinct(employee, date, .keep_all = TRUE) |>
-        dplyr::group_by(employee) |>
-        dplyr::summarize(days = sum(days)) |>
+        sum_days_per_emp() |>
         dplyr::filter(days %in% c(input$days_range[1]:input$days_range[2]))
     })
 
@@ -207,7 +229,7 @@ mod_data_server <- function(id, df){
       updateSelectInput(inputId = "employee", choices = choices)
     })
 
-    .data_employee <- reactive({
+    .df_employee <- reactive({
       .code() |>
         dplyr::filter(
           employee %in% input$employee
@@ -216,7 +238,7 @@ mod_data_server <- function(id, df){
     })
 
     list(
-      .data = .data_employee,
+      .df = .df_employee,
       .employee = reactive(input$employee),
       .dates = reactive(input$date),
       .codes = reactive(input$code)

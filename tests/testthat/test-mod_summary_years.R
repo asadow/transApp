@@ -1,7 +1,7 @@
 # testServer(
 #   mod_summary_years_server,
 #   # Add here your module params
-#   args = list(.data = pr::load_sick())
+#   args = list(.df = pr::load_sick())
 #   , {
 #     example_date <- as.Date("2022-12-12")
 #     ns <- session$ns
@@ -28,7 +28,7 @@
 #   })
 #
 # test_that("module ui works", {
-#   ui <- mod_summary_years_ui(id = "test", .data = tidyr::who)
+#   ui <- mod_summary_years_ui(id = "test", .df = tidyr::who)
 #   golem::expect_shinytaglist(ui)
 #   # Check that formals have not been removed
 #   fmls <- formals(mod_summary_years_ui)
