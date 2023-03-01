@@ -17,6 +17,8 @@ app_ui <- function(request) {
   tagList(
     golem_add_external_resources(),
     navbarPage(
+      id = "navbars",
+
       title = "Application for Employee Transactions",
       theme = theme,
 
@@ -28,7 +30,13 @@ app_ui <- function(request) {
 
       tabPanel(
         "Results",
-         tabPanel("Occasions", mod_occasions_ui("occasions"))
+         tabPanel(
+           "Occasions",
+            fluidRow(
+              column(6, mod_occasions_ui("occasions")),
+              column(6, mod_summarise_ui("summary"))
+            )
+         )
         ),
 
       navbarMenu(

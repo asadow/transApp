@@ -29,6 +29,7 @@ mod_occasions_server <- function(id, .df, .emp, .dates, .codes){
 
     .occasions <- reactive(pr::add_occasion(.df()))
 
+    ## Using .to_download instead of .table inside of mod_download_server()
     .to_download <- reactive({
       .occasions() |>
         dplyr::select(barg, dept, crew, code, surname,
@@ -40,19 +41,15 @@ mod_occasions_server <- function(id, .df, .emp, .dates, .codes){
       .occasions() |>
         dplyr::mutate(
           ## Place elsewhere??
-          # days = round(hours/hours_day, 1),
-          year_half = glue::glue("{year} - {year_half}")
-        ) |>
-        dplyr::select(code, year_half, occasion, hours, date)
+          # days = round(hours/hours_day, 1)
+          ) |>
+        dplyr::select(code, surname,
+                      given_names, employee_no, year_half,
+                      occasion, hours, date)
 
     })
 
     output$table <- reactable::renderReactable({
-
-      records <- nrow(.table()) > 0
-      validate(
-        need(records, "There are no records for the selected choices.")
-      )
 
       pr::style_reactable(.table())
 
@@ -61,6 +58,8 @@ mod_occasions_server <- function(id, .df, .emp, .dates, .codes){
     .filename <- mod_file_server(NULL, label = id, .emp, .dates, .codes)
 
     output$downloadData <- mod_download_server(NULL, .to_download, .filename)
+
+    return(.table)
 
   })
 }

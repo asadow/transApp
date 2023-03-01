@@ -23,6 +23,8 @@ mod_data_ui <- function(id, df){
   # min_year <- df$year |> as.character() |> as.numeric() |> min()
 
   fluidRow(
+    shinyjs::useShinyjs(),
+    shinyFeedback::useShinyFeedback(),
     column(3,
            wellPanel(
               selectInput(
@@ -83,7 +85,7 @@ mod_data_ui <- function(id, df){
               ns("days_range"),
               min = 0,
               max = 100,
-              label = "Choose number of days with codes and within dates above",
+              label = "Choose number of days with above codes and dates",
               value = c(16, 100),
               step = 1
               ),
@@ -92,14 +94,17 @@ mod_data_ui <- function(id, df){
     ),
     column(3,
            wellPanel(
-             actionButton(ns("find_emps"), "Find employees!"),
+             # actionButton(ns("find_emps"), "Find employees"),
 
              selectInput(
                ns("employee"),
                label = "Choose employee",
                # multiple = TRUE,
                choices = NULL
-             )
+             ),
+
+             actionButton(ns("see_results"), "See results!"),
+
            )
          )
 
@@ -160,6 +165,7 @@ mod_data_server <- function(id, df){
       })
 
     observeEvent(.barg(), {
+      freezeReactiveValue(input, "dept_desc")
       choices <- if(input$barg == "All"){
        c("All", sort_unique(.barg()$dept_desc))
       } else {sort_unique(.barg()$dept_desc)}
@@ -175,6 +181,7 @@ mod_data_server <- function(id, df){
     })
 
     observeEvent(.dept(), {
+      freezeReactiveValue(input, "crew_desc")
       choices <- sort_unique(.dept()$crew_desc)
       updateSelectInput(inputId = "crew_desc",
                         choices = choices,
@@ -189,6 +196,7 @@ mod_data_server <- function(id, df){
     })
 
     observeEvent(.crew(), {
+      freezeReactiveValue(input, "code")
       choices <- sort_unique(.crew()$code)
       updateSelectInput(inputId = "code",
                         choices = choices,
@@ -201,6 +209,7 @@ mod_data_server <- function(id, df){
     })
 
     observeEvent(.code(), {
+      freezeReactiveValue(input, "date")
       max_date <- max(.code()$date)
       min_date <- min(.code()$date)
       updateDateRangeInput(inputId = "date",
@@ -210,14 +219,7 @@ mod_data_server <- function(id, df){
                            max = max_date)
     })
 
-    # .days <- reactive({
-    #   .code() |>
-    #     dplyr::filter(date >= input$date[1] & date <= input$date[2]) |>
-    #     sum_days_per_emp() |>
-    #     dplyr::filter(days %in% c(input$days_range[1]:input$days_range[2]))
-    # })
-
-    .days <- eventReactive(input$find_emps, {
+    .days <- reactive({
       .code() |>
         dplyr::filter(date >= input$date[1] & date <= input$date[2]) |>
         sum_days_per_emp() |>
@@ -225,11 +227,33 @@ mod_data_server <- function(id, df){
     })
 
     observeEvent(.days(), {
+      freezeReactiveValue(input, "employee")
       choices <- sort_unique(.days()$employee)
-      updateSelectInput(inputId = "employee", choices = choices)
+      if(is_empty(choices)){
+        ## NB For some reason,
+        ## using updateSelectInput("employee", selected = "", choices = "")
+        ## removes the warning message
+        ## NB Another option is to hide the employee UI and give a message
+        shinyFeedback::showFeedbackWarning(
+          "employee",
+          "Employees do not match the chosen criteria. Please choose new criteria."
+        )
+        shinyjs::hide("see_results")
+      }
+      else{
+        shinyFeedback::hideFeedback("employee")
+        updateSelectInput(inputId = "employee", choices = choices)
+        shinyjs::show("see_results")
+
+      }
     })
 
     .df_employee <- reactive({
+      records <- nrow(.days()) > 0
+      validate(
+        need(records, "No results for the selected criteria.")
+      )
+
       .code() |>
         dplyr::filter(
           employee %in% input$employee
@@ -238,6 +262,7 @@ mod_data_server <- function(id, df){
     })
 
     list(
+      .click = reactive(input$see_results),
       .df = .df_employee,
       .employee = reactive(input$employee),
       .dates = reactive(input$date),
