@@ -29,7 +29,7 @@ mod_file_server <- function(id, label, .emp, .dates, .codes){
     .codes_hyphen <- reactive(glue::glue_collapse(.codes(), "-"))
     .date_range <- reactive(glue::glue("{.dates()[1]} to {.dates()[2]}"))
 
-    reactive(
+    .filename <- reactive(
       glue::glue("{label}, {.emp()}, {.codes_hyphen()}, {.date_range()}")
     )
 

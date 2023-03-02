@@ -21,7 +21,7 @@ mod_data_ui <- function(id, df){
   # ## Convert factor before max() or min()
   # max_year <- df$year |> as.character() |> as.numeric() |> max()
   # min_year <- df$year |> as.character() |> as.numeric() |> min()
-
+tagList(
   fluidRow(
     shinyjs::useShinyjs(),
     shinyFeedback::useShinyFeedback(),
@@ -109,6 +109,7 @@ mod_data_ui <- function(id, df){
          )
 
   )
+)
 
       # numericInput(
       #   ns("max_days"),
@@ -155,60 +156,72 @@ mod_data_server <- function(id, df){
   moduleServer( id, function(input, output, session){
     ns <- session$ns
 
-## Hierarchical Select: barg -> dep -> crew -> code -> dates -> days -> employee
+# Hierarchical select begins ----------------------------------------------
+# barg -> dep -> crew -> code -> dates -> days -> employee
 
-    .barg <- reactive({
+## Repetition starts -------------------------------------------------------
+
+    .barg <- reactive(label = "Filter by Bargaining Unit", {
       chosen <- if(input$barg == "All"){
         sort_unique(df$barg)
         } else {input$barg}
       dplyr::filter(df, barg %in% chosen)
       })
 
-    observeEvent(.barg(), {
+    observe(label = "Update Departments by Bargaining Unit", {
+      depts <- .barg()$dept_desc
       freezeReactiveValue(input, "dept_desc")
       choices <- if(input$barg == "All"){
-       c("All", sort_unique(.barg()$dept_desc))
-      } else {sort_unique(.barg()$dept_desc)}
+       c("All", sort_unique(depts))
+      } else {sort_unique(depts)}
       updateSelectInput(inputId = "dept_desc",
                         choices = choices)
-    })
+    }) |>
+      bindEvent(.barg())
 
-    .dept <- reactive({
+## Repetition ends -------------------------------------------------------
+
+    .dept <- reactive(label = "Filter by Department", {
       chosen <- if(input$dept_desc == "All"){
         sort_unique(df$dept_desc)
       } else {input$dept_desc}
       dplyr::filter(.barg(), dept_desc %in% chosen)
     })
 
-    observeEvent(.dept(), {
+    observe(label = "Update Crew by Department", {
       freezeReactiveValue(input, "crew_desc")
       choices <- sort_unique(.dept()$crew_desc)
       updateSelectInput(inputId = "crew_desc",
                         choices = choices,
                         selected = choices[1])
-    })
+    }) |>
+      bindEvent(.dept())
 
-    .crew <- reactive({
+## -------------------------------------------------------------------------
+
+    .crew <- reactive(label = "Filter by Crew", {
       chosen <- if(input$crew_desc == "All"){
         sort_unique(df$crew_desc)
       } else {input$crew_desc}
       dplyr::filter(.dept(), crew_desc %in% chosen)
     })
 
-    observeEvent(.crew(), {
+    observe(label = "Update Codes by Crew in Department", {
       freezeReactiveValue(input, "code")
       choices <- sort_unique(.crew()$code)
       updateSelectInput(inputId = "code",
                         choices = choices,
                         selected = choices[1])
-    })
+    }) |>
+      bindEvent(.crew())
 
-    .code <- reactive({
+## -------------------------------------------------------------------------
+    .code <- reactive(label = "Filter by Code", {
       choices <- input$code
-      dplyr::filter(.dept(), code %in% choices)
+      dplyr::filter(.crew(), code %in% choices)
     })
 
-    observeEvent(.code(), {
+    observe(label = "Update Dates by Codes", {
       freezeReactiveValue(input, "date")
       max_date <- max(.code()$date)
       min_date <- min(.code()$date)
@@ -217,16 +230,19 @@ mod_data_server <- function(id, df){
                            start = min_date,
                            end = max_date,
                            max = max_date)
-    })
+    }) |>
+      bindEvent(.code())
 
-    .days <- reactive({
+## -------------------------------------------------------------------------
+
+    .days <- reactive(label = "Calculate Days With Selections", {
       .code() |>
         dplyr::filter(date >= input$date[1] & date <= input$date[2]) |>
         sum_days_per_emp() |>
         dplyr::filter(days %in% c(input$days_range[1]:input$days_range[2]))
     })
 
-    observeEvent(.days(), {
+    observe(label = "Update Employee by Days", {
       freezeReactiveValue(input, "employee")
       choices <- sort_unique(.days()$employee)
       if(is_empty(choices)){
@@ -246,9 +262,12 @@ mod_data_server <- function(id, df){
         shinyjs::show("see_results")
 
       }
-    })
+    }) |>
+      bindEvent(.days())
 
-    .df_employee <- reactive({
+# Hierarchical select ends ----------------------------------------------
+
+    .df_employee <- reactive(label = "Final Filter", {
       records <- nrow(.days()) > 0
       validate(
         need(records, "No results for the selected criteria.")

@@ -30,22 +30,18 @@ mod_occasions_server <- function(id, .df, .emp, .dates, .codes){
     .occasions <- reactive(pr::add_occasion(.df()))
 
     ## Using .to_download instead of .table inside of mod_download_server()
-    .to_download <- reactive({
+    .to_download <- reactive(label = "Select vars to download",{
       .occasions() |>
         dplyr::select(barg, dept, crew, code, surname,
                       given_names, employee_no,
-                      year_half, occasion, hours, date)
+                      year_half, occasion, hours, hours_day, date)
     })
 
-    .table <- reactive({
+    .table <- reactive(label = "Select vars to display", {
       .occasions() |>
-        dplyr::mutate(
-          ## Place elsewhere??
-          # days = round(hours/hours_day, 1)
-          ) |>
         dplyr::select(code, surname,
                       given_names, employee_no, year_half,
-                      occasion, hours, date)
+                      occasion, hours, hours_day, date)
 
     })
 

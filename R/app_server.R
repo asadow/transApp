@@ -11,7 +11,8 @@ app_server <- function(input, output, session) {
 
   observeEvent(
     .click(),
-    updateTabsetPanel(session, "navbars", selected = "Results")
+    updateTabsetPanel(session, "navbars", selected = "Results"),
+    label = "Switch Tab on Click"
     )
 
   .occ <- mod_occasions_server("occasions", .df, .emp, .dates, .codes)
@@ -19,3 +20,4 @@ app_server <- function(input, output, session) {
 
 
 }
+

@@ -1,22 +1,12 @@
 test_that("output updates when reactive input changes", {
   x <- reactiveVal()
   y <- reactiveVal()
-  z <- reactiveVal()
-  w <- reactiveVal()
   testServer(
     mod_download_server,
-    args = list(
-      label = "test", .df = x, .emp = y, .dates = z, .codes = w
-    )
+    args = list(.df = x, .filename = y)
     , {
-      x(data.frame(x=c(1:3)))
       y("TEST NAME")
-      z(c("2050-12-12", "2051-01-01"))
-      w(c("SICK", "VAC", "CV"))
-      session$flushReact()
-      expect_equal(.filename(),
-                   "test, TEST NAME, SICK-VAC-CV, 2050-12-12 to 2051-01-01.csv")
-
+      x(data.frame(x = 1))
       ns <- session$ns
       expect_true(
         inherits(ns, "function")
@@ -27,9 +17,6 @@ test_that("output updates when reactive input changes", {
       expect_true(
         grepl("test", ns("test"))
       )
-      # - Testing the setting of inputs
-      session$setInputs(.emp = "JOE")
-      expect_true(input$.emp == "JOE")
 
       # - If ever your input updates a reactiveValues
       # - Note that this reactiveValues must be passed
@@ -37,9 +24,7 @@ test_that("output updates when reactive input changes", {
       # expect_true(r$x == 1)
       # - Testing output
       expect_s3_class(.df(), "data.frame")
-      expect_type(.emp(), "character")
-      expect_type(.dates(), "character")
-      expect_type(.codes(), "character")
+      expect_type(.filename(), "character")
       # expect_true(inherits(output$downloadData$html, "html"))
   })
 })
